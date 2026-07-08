@@ -14,6 +14,7 @@ interface ShortVideoPlayerProps {
   onShare: () => void;
   onDoubleTapHeart: (clientX: number, clientY: number) => void;
   onOpenMobileCommentsDrawer: () => void;
+  onOpenCreatorProfile?: (author: string, avatarUrl: string, category: string) => void;
 }
 
 const creatorBios: Record<string, string> = {
@@ -43,6 +44,7 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
   onShare,
   onDoubleTapHeart,
   onOpenMobileCommentsDrawer,
+  onOpenCreatorProfile,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -309,10 +311,38 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
                   <span>Follow</span>
                 )}
               </button>
+              {onOpenCreatorProfile && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenCreatorProfile(video.author, video.avatarUrl, video.category);
+                    setShowAccountPreview(false);
+                  }}
+                  className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800/60 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all"
+                  title="View Full Creator Profile"
+                >
+                  Profile
+                </button>
+              )}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Swipe Left Hint Overlay */}
+      {isActive && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-1.5 pointer-events-none select-none">
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: [0.15, 0.45, 0.15], x: [0, -4, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+            className="flex items-center gap-1 bg-black/40 backdrop-blur-sm border border-white/5 py-3 px-1.5 rounded-full [writing-mode:vertical-lr] text-[9px] font-black tracking-widest text-emerald-400 uppercase"
+          >
+            <span>Swipe Left For Profile</span>
+            <span className="rotate-90 text-[10px] mt-1">➔</span>
+          </motion.div>
+        </div>
+      )}
 
       {/* Immersive overlay gradients */}
       <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />

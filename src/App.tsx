@@ -8,6 +8,7 @@ import { CreatorChatPanel } from "./components/CreatorChatPanel";
 import { FloatingHearts } from "./components/FloatingHearts";
 import { GiftSelector } from "./components/GiftSelector";
 import { UserProfileAndSettings } from "./components/UserProfileAndSettings";
+import { CreatorProfileSideSheet } from "./components/CreatorProfileSideSheet";
 import Navigation from "./components/Navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronUp, ChevronDown, MessageSquare, X, Smartphone, Monitor, Heart, Share2, Gift, Sparkles } from "lucide-react";
@@ -27,6 +28,17 @@ export default function App() {
 
   // User profile and settings state
   const [showProfileAndSettings, setShowProfileAndSettings] = useState(false);
+
+  // Selected creator side sheet profile overlay
+  const [selectedCreatorForSideSheet, setSelectedCreatorForSideSheet] = useState<{
+    author: string;
+    avatarUrl: string;
+    category: string;
+  } | null>(null);
+
+  // Gesture/swipe references
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const mouseDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // Navigation Sidebar States and Mock Data
   const [currentView, setCurrentView] = useState("shorts");
@@ -406,6 +418,64 @@ export default function App() {
                       data-slide
                       data-index={index}
                       className="h-full w-full snap-start snap-always shrink-0 relative"
+                      onTouchStart={(e) => {
+                        const touch = e.touches[0];
+                        touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+                      }}
+                      onTouchMove={(e) => {
+                        if (!touchStartRef.current) return;
+                        const touch = e.touches[0];
+                        const diffX = touchStartRef.current.x - touch.clientX;
+                        const diffY = touchStartRef.current.y - touch.clientY;
+                        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                          if (e.cancelable) {
+                            e.preventDefault();
+                          }
+                        }
+                      }}
+                      onTouchEnd={(e) => {
+                        if (!touchStartRef.current) return;
+                        const touch = e.changedTouches[0];
+                        const diffX = touchStartRef.current.x - touch.clientX;
+                        const diffY = touchStartRef.current.y - touch.clientY;
+                        const timeDiff = Date.now() - touchStartRef.current.time;
+
+                        if (diffX > 50 && Math.abs(diffX) > Math.abs(diffY) && timeDiff < 400) {
+                          setSelectedCreatorForSideSheet({
+                            author: video.author,
+                            avatarUrl: video.avatarUrl,
+                            category: video.category
+                          });
+                        }
+                        touchStartRef.current = null;
+                      }}
+                      onMouseDown={(e) => {
+                        if ((e.target as HTMLElement).closest('button, input, textarea, a, svg, [role="button"]')) return;
+                        mouseDownRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+                      }}
+                      onMouseMove={(e) => {
+                        if (!mouseDownRef.current) return;
+                        const diffX = mouseDownRef.current.x - e.clientX;
+                        const diffY = mouseDownRef.current.y - e.clientY;
+                        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onMouseUp={(e) => {
+                        if (!mouseDownRef.current) return;
+                        const diffX = mouseDownRef.current.x - e.clientX;
+                        const diffY = mouseDownRef.current.y - e.clientY;
+                        const timeDiff = Date.now() - mouseDownRef.current.time;
+
+                        if (diffX > 50 && Math.abs(diffX) > Math.abs(diffY) && timeDiff < 400) {
+                          setSelectedCreatorForSideSheet({
+                            author: video.author,
+                            avatarUrl: video.avatarUrl,
+                            category: video.category
+                          });
+                        }
+                        mouseDownRef.current = null;
+                      }}
                     >
                       {/* Render active players or thumbnail placeholders */}
                       <ShortVideoPlayer
@@ -419,6 +489,9 @@ export default function App() {
                         onShare={handleShareVideo}
                         onDoubleTapHeart={triggerDoubleTapHeart}
                         onOpenMobileCommentsDrawer={() => setShowCommentsPanel(true)}
+                        onOpenCreatorProfile={(author, avatarUrl, category) => {
+                          setSelectedCreatorForSideSheet({ author, avatarUrl, category });
+                        }}
                       />
 
                       {/* Interactive Simulated Live Chat overlay inside device screen */}
@@ -729,6 +802,19 @@ export default function App() {
         isOpen={showProfileAndSettings}
         onClose={() => setShowProfileAndSettings(false)}
       />
+
+      {/* Immersive Creator Profile Side Sheet Overlay */}
+      <AnimatePresence>
+        {selectedCreatorForSideSheet && (
+          <CreatorProfileSideSheet
+            isOpen={true}
+            onClose={() => setSelectedCreatorForSideSheet(null)}
+            author={selectedCreatorForSideSheet.author}
+            avatarUrl={selectedCreatorForSideSheet.avatarUrl}
+            category={selectedCreatorForSideSheet.category}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
