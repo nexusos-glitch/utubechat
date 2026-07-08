@@ -49,9 +49,11 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
           const Icon = item.icon;
           const isActive = currentView === item.id;
           return (
-            <button
+            <a
               key={item.id}
-              onClick={() => {
+              href={`#${item.id}`}
+              onClick={(e) => {
+                e.preventDefault();
                 onNavigate(item.id);
                 onClose?.();
               }}
@@ -63,7 +65,7 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
             >
               <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-gold-500' : ''}`} />
               <span>{item.label}</span>
-            </button>
+            </a>
           );
         })}
       </div>
@@ -72,15 +74,28 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
 
       {/* Library / Library Elements */}
       <div>
-        <h3 className="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 font-mono">My Playlists</h3>
+        <a
+          href="#playlists"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate('playlists');
+            onClose?.();
+          }}
+          className="px-3 text-[10px] font-bold text-zinc-500 hover:text-emerald-400 transition-colors uppercase tracking-wider mb-2 font-mono block cursor-pointer"
+          id="nav-title-playlists"
+        >
+          My Playlists ➔
+        </a>
         <div className="space-y-1">
           {personalNav.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
             return (
               <div key={item.id} className="space-y-1">
-                <button
-                  onClick={() => {
+                <a
+                  href={`#${item.id}`}
+                  onClick={(e) => {
+                    e.preventDefault();
                     onNavigate(item.id);
                     onClose?.();
                   }}
@@ -92,15 +107,17 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
                 >
                   <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-gold-500' : ''}`} />
                   <span>{item.label}</span>
-                </button>
+                </a>
 
                 {item.id === 'history' && historyVideos && historyVideos.length > 0 && !isCollapsed && (
                   <div className="pl-8 pr-2 pt-1 pb-1 space-y-1.5 border-l border-zinc-900 ml-5 animate-in slide-in-from-top-1 duration-150">
                     <div className="text-[9px] text-zinc-500 font-mono font-semibold tracking-wider mb-1 uppercase">Recently Played</div>
                     {historyVideos.slice(0, 4).map((vid) => (
-                      <button
+                      <a
                         key={vid.id}
-                        onClick={() => {
+                        href={`#video-detail-${vid.id}`}
+                        onClick={(e) => {
+                          e.preventDefault();
                           onNavigate('video-detail', { video: vid });
                           onClose?.();
                         }}
@@ -116,7 +133,7 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
                           />
                         </div>
                         <span className="text-[11px] font-medium truncate flex-1 leading-tight">{vid.title}</span>
-                      </button>
+                      </a>
                     ))}
                   </div>
                 )}
@@ -130,15 +147,28 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
 
       {/* Creator Commerce & Ecosystem */}
       <div>
-        <h3 className="px-3 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 font-mono">Creator Economy</h3>
+        <a
+          href="#economy"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate('premium');
+            onClose?.();
+          }}
+          className="px-3 text-[10px] font-bold text-zinc-500 hover:text-emerald-400 transition-colors uppercase tracking-wider mb-2 font-mono block cursor-pointer"
+          id="nav-title-economy"
+        >
+          Creator Economy ➔
+        </a>
         <div className="space-y-1">
           {ecosystemNav.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
             return (
-              <button
+              <a
                 key={item.id}
-                onClick={() => {
+                href={`#${item.id}`}
+                onClick={(e) => {
+                  e.preventDefault();
                   onNavigate(item.id);
                   onClose?.();
                 }}
@@ -150,7 +180,7 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
               >
                 <Icon className={`w-4.5 h-4.5 ${isActive ? 'text-gold-500' : 'text-gold-500/60'}`} />
                 <span>{item.label}</span>
-              </button>
+              </a>
             );
           })}
         </div>
@@ -161,18 +191,31 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
       {/* Subscriptions Stream (Matches sidebar exactly) */}
       <div>
         <div className="flex items-center justify-between px-3 mb-2">
-          <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider font-mono">Subscriptions</h3>
+          <a
+            href="#subscriptions"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate('shorts');
+              onClose?.();
+            }}
+            className="text-[10px] font-bold text-zinc-500 hover:text-emerald-400 transition-colors uppercase tracking-wider font-mono cursor-pointer"
+            id="nav-title-subscriptions"
+          >
+            Subscriptions ➔
+          </a>
           <span className="text-[8px] bg-gold-500/10 text-gold-400 border border-gold-500/20 px-1.5 py-0.5 rounded font-bold font-mono">LIVE</span>
         </div>
         <div className="space-y-1.5">
           {subscribedCreators.map((creator) => (
-            <button
+            <a
               key={creator.id}
-              onClick={() => {
+              href={`#creator-${creator.id}`}
+              onClick={(e) => {
+                e.preventDefault();
                 onNavigate('creator-profile', { creatorId: creator.id });
                 onClose?.();
               }}
-              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all cursor-pointer group text-left"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-xs text-zinc-400 hover:text-white hover:bg-zinc-900 transition-all cursor-pointer group text-left block"
             >
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <img 
@@ -184,7 +227,7 @@ export default function Navigation({ currentView, onNavigate, subscribedCreators
                 <span className="truncate">{creator.name}</span>
               </div>
               <span className="w-1.5 h-1.5 rounded-full bg-gold-500 group-hover:scale-110 transition-transform flex-shrink-0 ml-1"></span>
-            </button>
+            </a>
           ))}
         </div>
       </div>

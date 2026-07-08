@@ -111,6 +111,23 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
     }
   }, [isActive]);
 
+  const [progress, setProgress] = useState(0);
+
+  const handleTimeUpdate = () => {
+    if (!videoRef.current) return;
+    const current = videoRef.current.currentTime;
+    const duration = videoRef.current.duration;
+    if (duration > 0) {
+      setProgress((current / duration) * 100);
+    }
+  };
+
+  useEffect(() => {
+    if (!isActive) {
+      setProgress(0);
+    }
+  }, [isActive, video.id]);
+
   const handleTogglePlay = () => {
     if (!videoRef.current) return;
 
@@ -166,6 +183,7 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
         onWaiting={() => setIsWaiting(true)}
         onPlaying={() => setIsWaiting(false)}
         onLoadedData={() => setIsWaiting(false)}
+        onTimeUpdate={handleTimeUpdate}
       />
 
       {/* Loading overlay spinner */}
@@ -355,6 +373,14 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
       >
         {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
       </button>
+
+      {/* Slim, persistent playback progress bar */}
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/25 z-25 overflow-hidden">
+        <div
+          className="h-full bg-emerald-500 rounded-r-full"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
     </div>
   );
 };

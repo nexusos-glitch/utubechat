@@ -36,6 +36,9 @@ export default function App() {
     category: string;
   } | null>(null);
 
+  // Track hovered button for custom tooltips
+  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
+
   // Gesture/swipe references
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const mouseDownRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -101,7 +104,7 @@ export default function App() {
 
   // Open trays
   const [showGiftSelector, setShowGiftSelector] = useState(false);
-  const [showCommentsPanel, setShowCommentsPanel] = useState(true);
+  const [showCommentsPanel, setShowCommentsPanel] = useState(false);
 
   // Live Chat Stream History
   const [chatHistory, setChatHistory] = useState<LiveMessage[]>([]);
@@ -558,8 +561,10 @@ export default function App() {
               <div className="flex flex-col gap-4.5 items-center w-full">
                 
                 {/* Like / Heart */}
-                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col items-center gap-0.5 w-full relative" onClick={(e) => e.stopPropagation()}>
                   <button
+                    onMouseEnter={() => setHoveredButton("like")}
+                    onMouseLeave={() => setHoveredButton(null)}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleLikeToggle();
@@ -573,6 +578,20 @@ export default function App() {
                   >
                     <Heart size={16} fill={activeVideo && likedVideos.has(activeVideo.id) ? "currentColor" : "none"} />
                   </button>
+                  <AnimatePresence>
+                    {hoveredButton === "like" && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                        transition={{ duration: 0.12, ease: "easeOut" }}
+                        className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-1.5 bg-zinc-900/95 backdrop-blur-md text-[10px] font-black text-white rounded-lg border border-zinc-800 shadow-xl pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5 tracking-wider uppercase font-mono"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                        <span>Like</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <AnimatePresence>
                     {showToolbarLabels && (
                       <motion.span 
@@ -588,8 +607,10 @@ export default function App() {
                 </div>
 
                 {/* Comment Toggle / Vertical Comments Open */}
-                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col items-center gap-0.5 w-full relative" onClick={(e) => e.stopPropagation()}>
                   <button
+                    onMouseEnter={() => setHoveredButton("comments")}
+                    onMouseLeave={() => setHoveredButton(null)}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowCommentsPanel(!showCommentsPanel);
@@ -603,6 +624,20 @@ export default function App() {
                   >
                     <MessageSquare size={16} />
                   </button>
+                  <AnimatePresence>
+                    {hoveredButton === "comments" && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                        transition={{ duration: 0.12, ease: "easeOut" }}
+                        className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-1.5 bg-zinc-900/95 backdrop-blur-md text-[10px] font-black text-white rounded-lg border border-zinc-800 shadow-xl pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5 tracking-wider uppercase font-mono"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        <span>Comments</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <AnimatePresence>
                     {showToolbarLabels && (
                       <motion.span 
@@ -618,8 +653,10 @@ export default function App() {
                 </div>
 
                 {/* Share */}
-                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col items-center gap-0.5 w-full relative" onClick={(e) => e.stopPropagation()}>
                   <button
+                    onMouseEnter={() => setHoveredButton("share")}
+                    onMouseLeave={() => setHoveredButton(null)}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleShareVideo();
@@ -629,6 +666,20 @@ export default function App() {
                   >
                     <Share2 size={16} />
                   </button>
+                  <AnimatePresence>
+                    {hoveredButton === "share" && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                        transition={{ duration: 0.12, ease: "easeOut" }}
+                        className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-1.5 bg-zinc-900/95 backdrop-blur-md text-[10px] font-black text-white rounded-lg border border-zinc-800 shadow-xl pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5 tracking-wider uppercase font-mono"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                        <span>Share</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <AnimatePresence>
                     {showToolbarLabels && (
                       <motion.span 
@@ -644,8 +695,10 @@ export default function App() {
                 </div>
 
                 {/* Gift Shower */}
-                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
+                <div className="flex flex-col items-center gap-0.5 w-full relative" onClick={(e) => e.stopPropagation()}>
                   <button
+                    onMouseEnter={() => setHoveredButton("gift")}
+                    onMouseLeave={() => setHoveredButton(null)}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowGiftSelector(true);
@@ -655,6 +708,20 @@ export default function App() {
                   >
                     <Gift size={16} />
                   </button>
+                  <AnimatePresence>
+                    {hoveredButton === "gift" && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 10, scale: 0.95 }}
+                        transition={{ duration: 0.12, ease: "easeOut" }}
+                        className="absolute right-full top-1/2 -translate-y-1/2 mr-3 px-3 py-1.5 bg-zinc-900/95 backdrop-blur-md text-[10px] font-black text-white rounded-lg border border-zinc-800 shadow-xl pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5 tracking-wider uppercase font-mono"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span>Gift</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <AnimatePresence>
                     {showToolbarLabels && (
                       <motion.span 

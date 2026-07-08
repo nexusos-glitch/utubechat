@@ -78,23 +78,33 @@ You are chatting with one of your viewers in a direct message or chat stream.
 Your tone is energetic, casual, interactive, and fits the vibe of a popular content creator (use occasional internet slang, abbreviations, or emojis, but keep replies concise, under 2-3 sentences max).
 Respond in character to the viewer's message.`;
 
-    if (ai) {
-      const reply = await getAIResponse(systemInstruction, message, history || []);
-      res.json({ reply });
-    } else {
-      // Offline simulation fallback
+    const getOfflineReply = () => {
       const fallbacks = [
         `Thanks for watching! That was so fun to film. 🎬✨`,
         `Yo! Glad you like the content. Drop a follow! 🙌❤️`,
         `Appreciate the support! Next video drops tomorrow. Stay tuned! 🔥`,
         `Haha thanks! Appreciate you being here in the stream! 🚀`,
       ];
-      const randomReply = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+      return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    };
+
+    if (ai) {
+      try {
+        const reply = await getAIResponse(systemInstruction, message, history || []);
+        res.json({ reply });
+      } catch (geminiError: any) {
+        console.warn("Gemini API chat call failed, falling back to local simulation:", geminiError.message || geminiError);
+        const fallbackReply = getOfflineReply();
+        res.json({ reply: `[Simulation] ${fallbackReply}` });
+      }
+    } else {
+      // Offline simulation fallback
+      const randomReply = getOfflineReply();
       res.json({ reply: `[Offline simulation] ${randomReply}` });
     }
   } catch (error: any) {
-    console.error("AI Creator Chat Error:", error);
-    res.status(500).json({ error: error.message || "An error occurred with Gemini API." });
+    console.warn("AI Creator Chat Route Error:", error.message || error);
+    res.json({ reply: "Thanks for commenting! Appreciate you being here in the stream! 🚀" });
   }
 });
 
@@ -124,29 +134,34 @@ Return EXACTLY a JSON array with this structure:
     const systemInstruction = "You are a master live stream simulator. Return ONLY a valid JSON array of comments. Do not include markdown codeblocks or any text other than the JSON itself.";
 
     if (ai) {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: prompt,
-        config: {
-          systemInstruction: systemInstruction,
-          responseMimeType: "application/json",
-          temperature: 0.9,
-        },
-      });
-
-      const text = response.text || "[]";
       try {
-        const parsed = JSON.parse(text.trim());
-        res.json({ comments: parsed });
-      } catch (err) {
-        console.error("Failed to parse simulated comments JSON:", text);
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: prompt,
+          config: {
+            systemInstruction: systemInstruction,
+            responseMimeType: "application/json",
+            temperature: 0.9,
+          },
+        });
+
+        const text = response.text || "[]";
+        try {
+          const parsed = JSON.parse(text.trim());
+          res.json({ comments: parsed });
+        } catch (err) {
+          console.warn("Failed to parse simulated comments JSON, using static fallback:", text);
+          res.json({ comments: getLocalFallbackComments(category) });
+        }
+      } catch (geminiError: any) {
+        console.warn("Gemini API comment simulation call failed, falling back to static comments:", geminiError.message || geminiError);
         res.json({ comments: getLocalFallbackComments(category) });
       }
     } else {
       res.json({ comments: getLocalFallbackComments(category) });
     }
   } catch (error: any) {
-    console.error("AI Comment Simulation Error:", error);
+    console.warn("AI Comment Simulation Route Error:", error.message || error);
     res.json({ comments: getLocalFallbackComments(req.body.category || "general") });
   }
 });
