@@ -1,0 +1,6 @@
+{
+  "name": "UtubeChat",
+  "description": "An elite, buttery-smooth short video feed featuring vertical snap-scrolling, immersive overlay UI, double-tap heart showers, real-time simulated live chats, and an interactive AI creator chat companion.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
