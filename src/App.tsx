@@ -373,7 +373,7 @@ export default function App() {
                 <button
                   onClick={() => navigateFeed("up")}
                   disabled={currentVideoIndex === 0}
-                  className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700/60 rounded-xl transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-95 shadow-sm"
+                  className="p-2.5 text-zinc-400 hover:text-white transition-colors disabled:opacity-20 disabled:pointer-events-none active:scale-95"
                   title="Scroll Up (Previous)"
                 >
                   <ChevronUp size={16} />
@@ -381,7 +381,7 @@ export default function App() {
                 <button
                   onClick={() => navigateFeed("down")}
                   disabled={currentVideoIndex === filteredFeed.length - 1}
-                  className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700/60 rounded-xl transition-all disabled:opacity-20 disabled:pointer-events-none active:scale-95 shadow-sm"
+                  className="p-2.5 text-zinc-400 hover:text-white transition-colors disabled:opacity-20 disabled:pointer-events-none active:scale-95"
                   title="Scroll Down (Next)"
                 >
                   <ChevronDown size={16} />
@@ -395,10 +395,10 @@ export default function App() {
                 <div className="flex flex-col items-center gap-0.5 w-full">
                   <button
                     onClick={handleLikeToggle}
-                    className={`p-2.5 rounded-full border transition-all active:scale-90 shadow-md ${
+                    className={`p-2.5 transition-all active:scale-90 ${
                       activeVideo && likedVideos.has(activeVideo.id)
-                        ? "bg-rose-600 border-transparent text-white shadow-rose-900/30"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white"
+                        ? "text-rose-500"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                     title="Like Video"
                   >
@@ -413,10 +413,10 @@ export default function App() {
                 <div className="flex flex-col items-center gap-0.5 w-full">
                   <button
                     onClick={() => setShowCommentsPanel(!showCommentsPanel)}
-                    className={`p-2.5 rounded-full border transition-all active:scale-90 shadow-md ${
+                    className={`p-2.5 transition-all active:scale-90 ${
                       showCommentsPanel
-                        ? "bg-emerald-600 border-transparent text-white shadow-emerald-950/40"
-                        : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white"
+                        ? "text-emerald-400"
+                        : "text-zinc-400 hover:text-white"
                     }`}
                     title="Toggle Vertical Comments"
                   >
@@ -431,7 +431,7 @@ export default function App() {
                 <div className="flex flex-col items-center gap-0.5 w-full">
                   <button
                     onClick={handleShareVideo}
-                    className="p-2.5 bg-zinc-800 border border-zinc-700 text-zinc-300 hover:text-white rounded-full shadow-md hover:border-zinc-500 transition-colors active:scale-90"
+                    className="p-2.5 text-zinc-400 hover:text-white transition-all active:scale-90"
                     title="Share Video"
                   >
                     <Share2 size={16} />
@@ -445,7 +445,7 @@ export default function App() {
                 <div className="flex flex-col items-center gap-0.5 w-full">
                   <button
                     onClick={() => setShowGiftSelector(true)}
-                    className="p-2.5 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 text-zinc-950 rounded-full font-black shadow-lg shadow-amber-500/10 active:scale-90 animate-pulse"
+                    className="p-2.5 text-amber-400 hover:text-amber-300 transition-all active:scale-90 animate-pulse"
                     title="Send Support Gift"
                   >
                     <Gift size={16} />
