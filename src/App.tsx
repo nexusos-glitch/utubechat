@@ -297,10 +297,12 @@ export default function App() {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-4 max-h-[82vh] h-full max-w-7xl w-full justify-center">
+          <div className="relative flex items-center justify-center max-h-[82vh] h-full max-w-7xl w-full">
             
-            {/* 1. Centered Video Player Frame */}
-            <div className="relative w-full max-w-[390px] h-[82vh] rounded-[42px] border-[10px] border-zinc-900 bg-black overflow-hidden shadow-2xl shadow-emerald-500/5 ring-1 ring-white/10 flex flex-col shrink-0">
+            {/* Wrapper for video player and toolbar to keep them perfectly centered */}
+            <div className="flex items-center gap-4 md:gap-6">
+              {/* 1. Centered Video Player Frame */}
+              <div className="relative w-full max-w-[390px] h-[82vh] rounded-[42px] border-[10px] border-zinc-900 bg-black overflow-hidden shadow-2xl shadow-emerald-500/5 ring-1 ring-white/10 flex flex-col shrink-0">
               {/* Physical Notch/Camera Bar */}
               <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-zinc-900 rounded-b-2xl z-30 flex items-center justify-center gap-1.5 px-3 pointer-events-none">
                 <div className="w-2.5 h-2.5 rounded-full bg-zinc-950 border border-zinc-850" />
@@ -364,7 +366,7 @@ export default function App() {
             </div>
 
             {/* 2. Sleek Vertical Toolbar (To the Right of Video Display) */}
-            <div className="flex flex-col items-center justify-between bg-zinc-900/80 border border-zinc-800/80 p-2 w-14 md:w-16 rounded-[24px] backdrop-blur-md shadow-xl py-5 md:py-6 shrink-0 h-[70vh] md:h-[82vh] z-30">
+            <div className="flex flex-col items-center justify-between p-2 w-14 md:w-16 py-5 md:py-6 shrink-0 h-[70vh] md:h-[82vh] z-30">
               
               {/* Arrow Up / Arrow Down for Video Navigation */}
               <div className="flex flex-col gap-2.5">
@@ -455,16 +457,17 @@ export default function App() {
 
               </div>
             </div>
+          </div>
 
             {/* 3. Expandable Vertical Comments & Creator Chat Panel */}
             <AnimatePresence>
               {showCommentsPanel && activeVideo && (
                 <motion.div
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 360, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
+                  initial={{ opacity: 0, x: 40, y: "-50%" }}
+                  animate={{ opacity: 1, x: 0, y: "-50%" }}
+                  exit={{ opacity: 0, x: 40, y: "-50%" }}
                   transition={{ type: "spring", damping: 26, stiffness: 200 }}
-                  className="hidden lg:flex flex-col bg-zinc-950 border border-zinc-900 rounded-[28px] overflow-hidden h-[82vh] shrink-0 shadow-2xl relative"
+                  className="hidden lg:flex flex-col bg-zinc-950 border border-zinc-900 rounded-[28px] overflow-hidden h-[82vh] w-[360px] shadow-2xl absolute right-2 xl:right-10 top-1/2 z-40"
                 >
                   <div className="absolute top-4 right-4 z-30">
                     <button
