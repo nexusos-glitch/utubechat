@@ -43,3 +43,15 @@ export interface FloatingGiftAnimation {
   x: number; // Random horizontal start position
   y: number; // Vertical translation progress
 }
+
+export interface Creator {
+  id: string;
+  name: string;
+  avatar: string;
+}
+
+export interface Video {
+  id: string;
+  title: string;
+  thumbnail: string;
+}

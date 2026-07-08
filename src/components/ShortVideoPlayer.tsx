@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Heart, MessageSquare, Share2, Gift, Play, Volume2, VolumeX, Loader2 } from "lucide-react";
+import { Heart, MessageSquare, Share2, Gift, Play, Volume2, VolumeX, Loader2, X, Check } from "lucide-react";
 import { ShortVideo } from "../types";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -15,6 +15,22 @@ interface ShortVideoPlayerProps {
   onDoubleTapHeart: (clientX: number, clientY: number) => void;
   onOpenMobileCommentsDrawer: () => void;
 }
+
+const creatorBios: Record<string, string> = {
+  "@neon_pulse": "Cyber-artist wandering the streets of Neo-Tokyo. Capturing high-contrast moments, neon signs, and retro synthwave aesthetics.",
+  "@meadow_wander": "Nature filmmaker & field recordist. Finding quiet places, spring acacia blossoms, and mindful paths in nature.",
+  "@chef_satisfaction": "ASMR culinary creator. Perfectly cut radish, crisp ratatouille, and satisfying kitchen rhythms.",
+  "@sci_vortex": "Theoretical physicist & cosmos simulator. Rendering wormhole trajectories and dark matter structures.",
+  "@coast_drone": "Aerial oceanographer & wave meditator. Sharing the sea's shifting colors and sandy shorelines from above."
+};
+
+const creatorStats: Record<string, { followers: string; likes: string; isVerified: boolean }> = {
+  "@neon_pulse": { followers: "24.5K", likes: "142K", isVerified: true },
+  "@meadow_wander": { followers: "12.8K", likes: "89K", isVerified: false },
+  "@chef_satisfaction": { followers: "85.2K", likes: "612K", isVerified: true },
+  "@sci_vortex": { followers: "19.1K", likes: "76K", isVerified: false },
+  "@coast_drone": { followers: "43.0K", likes: "289K", isVerified: true }
+};
 
 export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
   video,
@@ -33,6 +49,39 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [isWaiting, setIsWaiting] = useState(true);
   const lastTapRef = useRef<number>(0);
+
+  // Account Preview States
+  const [showAccountPreview, setShowAccountPreview] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`followed_creator_${video.author}`);
+      return saved === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  // Keep following status reactive if author shifts or is changed
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`followed_creator_${video.author}`);
+      setIsFollowing(saved === "true");
+    } catch {
+      setIsFollowing(false);
+    }
+    setShowAccountPreview(false);
+  }, [video.id, video.author, isActive]);
+
+  const handleFollowToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextState = !isFollowing;
+    setIsFollowing(nextState);
+    try {
+      localStorage.setItem(`followed_creator_${video.author}`, String(nextState));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // Play/pause based on active status
   useEffect(() => {
@@ -143,9 +192,19 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
           <img
             src={video.avatarUrl}
             alt={video.author}
-            className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-sm"
+            className="w-8 h-8 rounded-full object-cover border border-white/20 shadow-sm pointer-events-auto cursor-pointer hover:scale-105 transition-transform"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAccountPreview(!showAccountPreview);
+            }}
           />
-          <h3 className="font-bold text-sm drop-shadow-md tracking-wide">
+          <h3 
+            className="font-bold text-sm drop-shadow-md tracking-wide pointer-events-auto cursor-pointer hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAccountPreview(!showAccountPreview);
+            }}
+          >
             {video.author}
           </h3>
           <span className="bg-emerald-500/80 text-[8px] font-bold px-1.5 py-0.5 rounded text-white tracking-wider flex items-center gap-0.5 shadow-sm uppercase">
@@ -167,6 +226,93 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Account Preview Tooltip / Popover */}
+      <AnimatePresence>
+        {showAccountPreview && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 12 }}
+            transition={{ type: "spring", damping: 18, stiffness: 200 }}
+            className="absolute bottom-28 left-4 right-4 bg-zinc-950/95 border border-zinc-800/80 rounded-2xl p-4 shadow-2xl backdrop-blur-md z-30 flex flex-col gap-3 pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex gap-3">
+                <div className="relative">
+                  <img
+                    src={video.avatarUrl}
+                    alt={video.author}
+                    className="w-10 h-10 rounded-full object-cover border-2 border-emerald-500 shadow-sm"
+                  />
+                  {creatorStats[video.author]?.isVerified && (
+                    <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white rounded-full p-0.5 border border-zinc-950 flex items-center justify-center w-4 h-4">
+                      <svg className="w-2 h-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293l-4 4a1 1 0 01-1.414 0l-2-2a1 1 0 111.414-1.414L9 10.586l3.293-3.293a1 1 0 111.414 1.414z" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-sm tracking-tight text-white flex items-center gap-1">
+                    {video.author.replace("@", "")}
+                  </h4>
+                  <p className="text-[10px] text-zinc-500 font-semibold font-mono">
+                    {video.author}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAccountPreview(false);
+                }}
+                className="p-1 hover:bg-zinc-900 rounded-full text-zinc-500 hover:text-white transition-colors"
+                title="Close"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-zinc-300 leading-relaxed font-medium">
+              {creatorBios[video.author] || "Inspiring creators and viewers one post at a time. Join the community! 🙌✨"}
+            </p>
+
+            <div className="flex gap-4 border-t border-zinc-900 pt-2 text-xs">
+              <div>
+                <span className="font-black text-white font-mono">{creatorStats[video.author]?.followers || "15.4K"}</span>
+                <span className="text-[10px] text-zinc-500 font-bold ml-1">Followers</span>
+              </div>
+              <div>
+                <span className="font-black text-white font-mono">{creatorStats[video.author]?.likes || "120K"}</span>
+                <span className="text-[10px] text-zinc-500 font-bold ml-1">Likes</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 w-full mt-1">
+              <button
+                onClick={handleFollowToggle}
+                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 ${
+                  isFollowing
+                    ? "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white border border-zinc-800/60"
+                    : "bg-emerald-500 text-white hover:bg-emerald-400 shadow-md shadow-emerald-950/20"
+                }`}
+              >
+                {isFollowing ? (
+                  <>
+                    <Check size={11} className="stroke-[3]" />
+                    <span>Following</span>
+                  </>
+                ) : (
+                  <span>Follow</span>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Immersive overlay gradients */}
       <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />

@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { SHORTS_FEED } from "./data";
-import { ShortVideo, LiveMessage, FloatingGiftAnimation, VirtualGift } from "./types";
+import { ShortVideo, LiveMessage, FloatingGiftAnimation, VirtualGift, Creator, Video } from "./types";
 import { HeaderBar } from "./components/HeaderBar";
 import { ShortVideoPlayer } from "./components/ShortVideoPlayer";
 import { LiveChatOverlay } from "./components/LiveChatOverlay";
 import { CreatorChatPanel } from "./components/CreatorChatPanel";
 import { FloatingHearts } from "./components/FloatingHearts";
 import { GiftSelector } from "./components/GiftSelector";
+import { UserProfileAndSettings } from "./components/UserProfileAndSettings";
+import Navigation from "./components/Navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronUp, ChevronDown, MessageSquare, X, Smartphone, Monitor, Heart, Share2, Gift, Sparkles } from "lucide-react";
 
@@ -22,6 +24,68 @@ export default function App() {
 
   // Virtual support gift animations
   const [animations, setAnimations] = useState<FloatingGiftAnimation[]>([]);
+
+  // User profile and settings state
+  const [showProfileAndSettings, setShowProfileAndSettings] = useState(false);
+
+  // Navigation Sidebar States and Mock Data
+  const [currentView, setCurrentView] = useState("shorts");
+  const [isNavCollapsed, setIsNavCollapsed] = useState(false); // open by default on desktop
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  const subscribedCreators: Creator[] = [
+    { id: "neon_pulse", name: "Neon Pulse", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" },
+    { id: "meadow_wander", name: "Meadow Wander", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=80" },
+    { id: "chef_satisfaction", name: "Chef Sat.", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80" },
+    { id: "sci_vortex", name: "Sci Vortex", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" },
+  ];
+
+  const historyVideos: Video[] = [
+    { id: "cyberpunk_neon", title: "Midnight wanderer in Neo-Tokyo", thumbnail: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=500&auto=format&fit=crop" },
+    { id: "nature_spring", title: "Spring breeze in yellow fields", thumbnail: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=500&auto=format&fit=crop" },
+    { id: "satisfying_chef", title: "Perfect radish slicing ASMR", thumbnail: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=500&auto=format&fit=crop" },
+  ];
+
+  const handleNavigate = (view: string, params?: any) => {
+    setCurrentView(view);
+    if (view === "home" || view === "shorts") {
+      setActiveCategory("all");
+      setSearchQuery("");
+      setCurrentVideoIndex(0);
+    } else if (view === "music") {
+      setActiveCategory("all");
+      setSearchQuery("asmrcooking"); // filter with a keyword for music/ASMR sounds
+      setCurrentVideoIndex(0);
+    } else if (view === "creator-profile" && params?.creatorId) {
+      const targetCreator = subscribedCreators.find(c => c.id === params.creatorId);
+      if (targetCreator) {
+        setSearchQuery("@" + targetCreator.id);
+        setActiveCategory("all");
+        setCurrentVideoIndex(0);
+      }
+    } else if (view === "video-detail" && params?.video) {
+      const idx = SHORTS_FEED.findIndex(v => v.id === params.video.id);
+      if (idx !== -1) {
+        setSearchQuery("");
+        setActiveCategory("all");
+        setTimeout(() => {
+          const container = scrollContainerRef.current;
+          if (container) {
+            const targetSlide = container.querySelector(`[data-index="${idx}"]`);
+            if (targetSlide) {
+              targetSlide.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }
+          setCurrentVideoIndex(idx);
+        }, 100);
+      }
+    } else {
+      alert(`Navigating to simulated section: ${view.toUpperCase()}. This feature is fully active with demo assets!`);
+    }
+  };
+
+  // Toggle visibility of the text labels below each icon in the toolbar
+  const [showToolbarLabels, setShowToolbarLabels] = useState(true);
 
   // Open trays
   const [showGiftSelector, setShowGiftSelector] = useState(false);
@@ -274,10 +338,29 @@ export default function App() {
           setActiveCategory(cat);
           setCurrentVideoIndex(0);
         }}
+        onOpenProfile={() => setShowProfileAndSettings(true)}
+        onToggleNavigation={() => {
+          if (window.innerWidth >= 1024) {
+            setIsNavCollapsed(!isNavCollapsed);
+          } else {
+            setIsMobileNavOpen(true);
+          }
+        }}
       />
 
       {/* Main Container Layout */}
-      <div className="flex-1 flex overflow-hidden relative justify-center items-center bg-zinc-950 p-2 md:p-6">
+      <div className="flex-1 flex overflow-hidden relative bg-[#0a0a0c]">
+        {/* Desktop Sidebar */}
+        <Navigation
+          currentView={currentView}
+          onNavigate={handleNavigate}
+          subscribedCreators={subscribedCreators}
+          isCollapsed={isNavCollapsed}
+          historyVideos={historyVideos}
+        />
+
+        {/* Video feed / content area container */}
+        <div className="flex-1 flex overflow-hidden relative justify-center items-center bg-zinc-950 p-2 md:p-6">
         {filteredFeed.length === 0 ? (
           /* Empty Search Vibe */
           <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-zinc-500">
@@ -366,12 +449,19 @@ export default function App() {
             </div>
 
             {/* 2. Sleek Vertical Toolbar (To the Right of Video Display) */}
-            <div className="flex flex-col items-center justify-center md:justify-between p-0 w-10 md:w-12 py-3 md:py-6 shrink-0 h-auto md:h-[82vh] gap-6 md:gap-0 z-30">
+            <div 
+              onClick={() => setShowToolbarLabels(!showToolbarLabels)}
+              className="flex flex-col items-center justify-between p-2 w-14 md:w-16 py-5 md:py-6 shrink-0 h-[70vh] md:h-[82vh] z-30 cursor-pointer select-none"
+              title="Click empty space to toggle labels"
+            >
               
               {/* Arrow Up / Arrow Down for Video Navigation (disappear on mobile phones) */}
-              <div className="hidden md:flex flex-col gap-2.5">
+              <div className="hidden md:flex flex-col gap-2.5" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={() => navigateFeed("up")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigateFeed("up");
+                  }}
                   disabled={currentVideoIndex === 0}
                   className="p-2.5 text-zinc-400 hover:text-white transition-colors disabled:opacity-20 disabled:pointer-events-none active:scale-95"
                   title="Scroll Up (Previous)"
@@ -379,7 +469,10 @@ export default function App() {
                   <ChevronUp size={16} />
                 </button>
                 <button
-                  onClick={() => navigateFeed("down")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigateFeed("down");
+                  }}
                   disabled={currentVideoIndex === filteredFeed.length - 1}
                   className="p-2.5 text-zinc-400 hover:text-white transition-colors disabled:opacity-20 disabled:pointer-events-none active:scale-95"
                   title="Scroll Down (Next)"
@@ -392,9 +485,12 @@ export default function App() {
               <div className="flex flex-col gap-4.5 items-center w-full">
                 
                 {/* Like / Heart */}
-                <div className="flex flex-col items-center gap-0.5 w-full">
+                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={handleLikeToggle}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLikeToggle();
+                    }}
                     className={`p-2.5 transition-all active:scale-90 ${
                       activeVideo && likedVideos.has(activeVideo.id)
                         ? "text-rose-500"
@@ -404,15 +500,27 @@ export default function App() {
                   >
                     <Heart size={16} fill={activeVideo && likedVideos.has(activeVideo.id) ? "currentColor" : "none"} />
                   </button>
-                  <span className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5">
-                    {activeVideo ? (likedVideos.has(activeVideo.id) ? activeVideo.likes + 1 : activeVideo.likes).toLocaleString() : 0}
-                  </span>
+                  <AnimatePresence>
+                    {showToolbarLabels && (
+                      <motion.span 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5 block overflow-hidden"
+                      >
+                        {activeVideo ? (likedVideos.has(activeVideo.id) ? activeVideo.likes + 1 : activeVideo.likes).toLocaleString() : 0}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Comment Toggle / Vertical Comments Open */}
-                <div className="flex flex-col items-center gap-0.5 w-full">
+                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={() => setShowCommentsPanel(!showCommentsPanel)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowCommentsPanel(!showCommentsPanel);
+                    }}
                     className={`p-2.5 transition-all active:scale-90 ${
                       showCommentsPanel
                         ? "text-emerald-400"
@@ -422,37 +530,70 @@ export default function App() {
                   >
                     <MessageSquare size={16} />
                   </button>
-                  <span className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5">
-                    {activeVideo?.commentsCount || 0}
-                  </span>
+                  <AnimatePresence>
+                    {showToolbarLabels && (
+                      <motion.span 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5 block overflow-hidden"
+                      >
+                        {activeVideo?.commentsCount || 0}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Share */}
-                <div className="flex flex-col items-center gap-0.5 w-full">
+                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={handleShareVideo}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShareVideo();
+                    }}
                     className="p-2.5 text-zinc-400 hover:text-white transition-all active:scale-90"
                     title="Share Video"
                   >
                     <Share2 size={16} />
                   </button>
-                  <span className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5">
-                    {activeVideo?.shares || 0}
-                  </span>
+                  <AnimatePresence>
+                    {showToolbarLabels && (
+                      <motion.span 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5 block overflow-hidden"
+                      >
+                        {activeVideo?.shares || 0}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Gift Shower */}
-                <div className="flex flex-col items-center gap-0.5 w-full">
+                <div className="flex flex-col items-center gap-0.5 w-full" onClick={(e) => e.stopPropagation()}>
                   <button
-                    onClick={() => setShowGiftSelector(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowGiftSelector(true);
+                    }}
                     className="p-2.5 text-amber-400 hover:text-amber-300 transition-all active:scale-90 animate-pulse"
                     title="Send Support Gift"
                   >
                     <Gift size={16} />
                   </button>
-                  <span className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5">
-                    {activeVideo?.giftsCount || 0}
-                  </span>
+                  <AnimatePresence>
+                    {showToolbarLabels && (
+                      <motion.span 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="text-[9px] font-bold text-zinc-400 font-mono mt-0.5 block overflow-hidden"
+                      >
+                        {activeVideo?.giftsCount || 0}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
 
               </div>
@@ -493,7 +634,50 @@ export default function App() {
             </AnimatePresence>
           </div>
         )}
+        </div>
       </div>
+
+      {/* Mobile Drawer Navigation Overlay */}
+      <AnimatePresence>
+        {isMobileNavOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileNavOpen(false)}
+              className="fixed inset-0 bg-black z-50 lg:hidden"
+            />
+            {/* Drawer Content */}
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-72 bg-[#0a0a0c] border-r border-zinc-900/80 p-5 z-50 overflow-y-auto lg:hidden flex flex-col gap-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-zinc-900/80 pb-3">
+                <span className="font-extrabold text-white tracking-tight">Navigation</span>
+                <button
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="p-1 hover:bg-zinc-900 rounded-full text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <Navigation
+                currentView={currentView}
+                onNavigate={handleNavigate}
+                subscribedCreators={subscribedCreators}
+                onClose={() => setIsMobileNavOpen(false)}
+                isMobile={true}
+                historyVideos={historyVideos}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Mobile drawer sheet for Comments and Video Details (Unified with showCommentsPanel) */}
       <AnimatePresence>
@@ -539,6 +723,12 @@ export default function App() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Immersive User Profile & Settings Experience (Screenshot 1 & 2 layout alignment) */}
+      <UserProfileAndSettings
+        isOpen={showProfileAndSettings}
+        onClose={() => setShowProfileAndSettings(false)}
+      />
     </div>
   );
 }

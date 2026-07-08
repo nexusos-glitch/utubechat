@@ -1,5 +1,5 @@
 import React from "react";
-import { Tv, Sparkles, Search, Coins, PlusCircle, Users, Activity } from "lucide-react";
+import { Tv, Sparkles, Search, Coins, PlusCircle, Users, Activity, Play, User, Menu } from "lucide-react";
 
 interface HeaderBarProps {
   coins: number;
@@ -8,6 +8,8 @@ interface HeaderBarProps {
   onSearchChange: (query: string) => void;
   activeCategory: string;
   onCategorySelect: (category: string) => void;
+  onOpenProfile: () => void;
+  onToggleNavigation: () => void;
 }
 
 export const HeaderBar: React.FC<HeaderBarProps> = ({
@@ -17,6 +19,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   onSearchChange,
   activeCategory,
   onCategorySelect,
+  onOpenProfile,
+  onToggleNavigation,
 }) => {
   const categories = [
     { id: "all", name: "All Feed" },
@@ -32,6 +36,13 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       {/* Branding and Spectator Meter */}
       <div className="flex items-center justify-between w-full md:w-auto gap-4">
         <div className="flex items-center gap-2.5">
+          <button
+            onClick={onToggleNavigation}
+            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg transition-colors mr-1 cursor-pointer"
+            title="Toggle Navigation Menu"
+          >
+            <Menu size={20} />
+          </button>
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/10">
             <Tv className="text-zinc-950 stroke-[2.5]" size={20} />
           </div>
@@ -51,15 +62,28 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           </div>
         </div>
 
-        {/* Balance (Visible on Mobile only in this block) */}
-        <div className="md:hidden flex items-center gap-2 bg-zinc-900/90 px-3 py-1.5 rounded-full border border-zinc-800">
-          <Coins className="text-yellow-400" size={14} />
-          <span className="text-[11px] font-bold text-white font-mono">{coins} 🪙</span>
+        {/* Balance & Profile (Visible on Mobile only in this block) */}
+        <div className="md:hidden flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-zinc-900/90 px-3 py-1.5 rounded-full border border-zinc-800">
+            <Coins className="text-yellow-400" size={14} />
+            <span className="text-[11px] font-bold text-white font-mono">{coins} 🪙</span>
+            <button
+              onClick={onAddCoins}
+              className="text-zinc-500 hover:text-yellow-400 transition-colors"
+            >
+              <PlusCircle size={14} />
+            </button>
+          </div>
+
+          {/* Mobile Profile Trigger (red-ringed avatar matching push2playlive style) */}
           <button
-            onClick={onAddCoins}
-            className="text-zinc-500 hover:text-yellow-400 transition-colors"
+            onClick={onOpenProfile}
+            className="w-8 h-8 rounded-full border-2 border-rose-600 bg-red-600 flex items-center justify-center shrink-0 active:scale-90 transition-transform shadow"
+            title="My Profile"
           >
-            <PlusCircle size={14} />
+            <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center">
+              <Play size={8} fill="white" className="text-white ml-0.5" />
+            </div>
           </button>
         </div>
       </div>
@@ -113,6 +137,27 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <PlusCircle size={16} />
           </button>
         </div>
+
+        {/* Desktop Profile Trigger (beautiful red-ringed live avatar matching push2playlive style) */}
+        <button
+          onClick={onOpenProfile}
+          className="group flex items-center gap-2.5 bg-zinc-900/90 border border-zinc-800 hover:border-rose-500/60 p-1.5 pr-3.5 rounded-full shadow-sm hover:bg-zinc-900 transition-all duration-300 active:scale-95"
+          title="Open Creator Account & Settings"
+        >
+          <div className="relative w-8 h-8 rounded-full border-2 border-rose-600 bg-red-600 flex items-center justify-center shrink-0">
+            <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center">
+              <Play size={8} fill="white" className="text-white ml-0.5" />
+            </div>
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+            </span>
+          </div>
+          <div className="text-left">
+            <p className="text-[10px] font-black text-white leading-none">push2playlive</p>
+            <p className="text-[8px] font-extrabold text-zinc-500 font-mono mt-0.5">@push2playlive</p>
+          </div>
+        </button>
       </div>
     </header>
   );
