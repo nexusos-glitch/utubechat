@@ -300,7 +300,7 @@ export default function App() {
           <div className="relative flex items-center justify-center max-h-[82vh] h-full max-w-7xl w-full">
             
             {/* Wrapper for video player and toolbar to keep them perfectly centered */}
-            <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-1 md:gap-1.5">
               {/* 1. Centered Video Player Frame */}
               <div className="relative w-full max-w-[390px] h-[82vh] rounded-[42px] border-[10px] border-zinc-900 bg-black overflow-hidden shadow-2xl shadow-emerald-500/5 ring-1 ring-white/10 flex flex-col shrink-0">
               {/* Physical Notch/Camera Bar */}
@@ -366,10 +366,10 @@ export default function App() {
             </div>
 
             {/* 2. Sleek Vertical Toolbar (To the Right of Video Display) */}
-            <div className="flex flex-col items-center justify-between p-2 w-14 md:w-16 py-5 md:py-6 shrink-0 h-[70vh] md:h-[82vh] z-30">
+            <div className="flex flex-col items-center justify-center md:justify-between p-0 w-10 md:w-12 py-3 md:py-6 shrink-0 h-auto md:h-[82vh] gap-6 md:gap-0 z-30">
               
-              {/* Arrow Up / Arrow Down for Video Navigation */}
-              <div className="flex flex-col gap-2.5">
+              {/* Arrow Up / Arrow Down for Video Navigation (disappear on mobile phones) */}
+              <div className="hidden md:flex flex-col gap-2.5">
                 <button
                   onClick={() => navigateFeed("up")}
                   disabled={currentVideoIndex === 0}
