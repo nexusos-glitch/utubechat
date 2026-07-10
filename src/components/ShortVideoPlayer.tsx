@@ -112,19 +112,53 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
   }, [isActive]);
 
   const [progress, setProgress] = useState(0);
+  const [bufferedProgress, setBufferedProgress] = useState(0);
 
-  const handleTimeUpdate = () => {
+  const updateProgressAndBuffer = () => {
     if (!videoRef.current) return;
-    const current = videoRef.current.currentTime;
-    const duration = videoRef.current.duration;
+    const videoEl = videoRef.current;
+    const current = videoEl.currentTime;
+    const duration = videoEl.duration;
+    
     if (duration > 0) {
       setProgress((current / duration) * 100);
+      
+      // Calculate buffered progress
+      if (videoEl.buffered && videoEl.buffered.length > 0) {
+        let maxBufferedEnd = 0;
+        for (let i = 0; i < videoEl.buffered.length; i++) {
+          const start = videoEl.buffered.start(i);
+          const end = videoEl.buffered.end(i);
+          // If this buffered range covers or is ahead of current time, track the furthest end
+          if (start <= current && end >= current) {
+            maxBufferedEnd = Math.max(maxBufferedEnd, end);
+          }
+        }
+        // Fallback to highest buffered end if none contain the current time
+        if (maxBufferedEnd === 0) {
+          for (let i = 0; i < videoEl.buffered.length; i++) {
+            if (videoEl.buffered.end(i) > maxBufferedEnd) {
+              maxBufferedEnd = videoEl.buffered.end(i);
+            }
+          }
+        }
+        setBufferedProgress((maxBufferedEnd / duration) * 100);
+      }
     }
+  };
+
+  const handleTimeUpdate = () => {
+    updateProgressAndBuffer();
+  };
+
+  const handleProgress = () => {
+    updateProgressAndBuffer();
   };
 
   useEffect(() => {
     if (!isActive) {
       setProgress(0);
+      setBufferedProgress(0);
     }
   }, [isActive, video.id]);
 
@@ -184,6 +218,7 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
         onPlaying={() => setIsWaiting(false)}
         onLoadedData={() => setIsWaiting(false)}
         onTimeUpdate={handleTimeUpdate}
+        onProgress={handleProgress}
       />
 
       {/* Loading overlay spinner */}
@@ -375,9 +410,15 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
       </button>
 
       {/* Slim, persistent playback progress bar */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/25 z-25 overflow-hidden">
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-25">
+        {/* Buffered Progress segment */}
         <div
-          className="h-full bg-emerald-500 rounded-r-full"
+          className="absolute top-0 bottom-0 left-0 bg-emerald-500/30 transition-all duration-300 ease-out"
+          style={{ width: `${bufferedProgress}%` }}
+        />
+        {/* Playback Progress segment */}
+        <div
+          className="absolute top-0 bottom-0 left-0 bg-emerald-500 rounded-r-full"
           style={{ width: `${progress}%` }}
         />
       </div>
