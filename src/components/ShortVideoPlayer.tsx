@@ -113,15 +113,26 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
 
   const [progress, setProgress] = useState(0);
   const [bufferedProgress, setBufferedProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const formatTime = (seconds: number) => {
+    if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const updateProgressAndBuffer = () => {
     if (!videoRef.current) return;
     const videoEl = videoRef.current;
     const current = videoEl.currentTime;
-    const duration = videoEl.duration;
+    const dur = videoEl.duration;
     
-    if (duration > 0) {
-      setProgress((current / duration) * 100);
+    setCurrentTime(current);
+    if (dur > 0) {
+      setDuration(dur);
+      setProgress((current / dur) * 100);
       
       // Calculate buffered progress
       if (videoEl.buffered && videoEl.buffered.length > 0) {
@@ -142,7 +153,7 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
             }
           }
         }
-        setBufferedProgress((maxBufferedEnd / duration) * 100);
+        setBufferedProgress((maxBufferedEnd / dur) * 100);
       }
     }
   };
@@ -155,10 +166,18 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
     updateProgressAndBuffer();
   };
 
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
+    }
+  };
+
   useEffect(() => {
     if (!isActive) {
       setProgress(0);
       setBufferedProgress(0);
+      setCurrentTime(0);
+      setDuration(0);
     }
   }, [isActive, video.id]);
 
@@ -217,6 +236,7 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
         onWaiting={() => setIsWaiting(true)}
         onPlaying={() => setIsWaiting(false)}
         onLoadedData={() => setIsWaiting(false)}
+        onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
         onProgress={handleProgress}
       />
@@ -401,7 +421,16 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
       <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 h-44 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
 
-      {/* Top Controls: Mute Toggle (Top Right) */}
+      {/* Top Controls: Mute Toggle (Top Right) & Timestamp Overlay */}
+      <div 
+        id="video-timestamp-overlay"
+        className="absolute top-4 right-16 px-2.5 py-1.5 bg-black/50 backdrop-blur-md border border-white/15 rounded-lg text-[10px] font-bold font-mono text-zinc-300 z-20 flex items-center justify-center select-none shadow-sm gap-1"
+      >
+        <span className="text-white">{formatTime(currentTime)}</span>
+        <span className="text-zinc-500">/</span>
+        <span>{formatTime(duration)}</span>
+      </div>
+
       <button
         onClick={onToggleMute}
         className="absolute top-4 right-4 p-2.5 bg-black/50 hover:bg-black/75 rounded-full text-white backdrop-blur-md border border-white/15 z-20 transition-colors active:scale-95"
