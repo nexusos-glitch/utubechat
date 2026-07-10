@@ -172,6 +172,23 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
     }
   };
 
+  const handleVideoEnded = () => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+          })
+          .catch((e) => {
+            console.log("Loop replay failed:", e);
+            setIsPlaying(false);
+          });
+      }
+    }
+  };
+
   useEffect(() => {
     if (!isActive) {
       setProgress(0);
@@ -228,7 +245,6 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
         ref={videoRef}
         src={video.videoUrl}
         className="h-full w-full object-cover select-none pointer-events-auto cursor-pointer"
-        loop
         playsInline
         muted={isMuted}
         onClick={handleTapGesture}
@@ -239,6 +255,7 @@ export const ShortVideoPlayer: React.FC<ShortVideoPlayerProps> = ({
         onLoadedMetadata={handleLoadedMetadata}
         onTimeUpdate={handleTimeUpdate}
         onProgress={handleProgress}
+        onEnded={handleVideoEnded}
       />
 
       {/* Loading overlay spinner */}
